@@ -1,0 +1,77 @@
+{
+    "emulator-5554": {
+        "houses": [
+            {
+                "name": "Trinh sát",
+                "x": 776,
+                "y": 233
+            },
+            {
+                "name": "Liên minh",
+                "x": 521,
+                "y": 285
+            },
+            {
+                "name": "Doanh trại",
+                "x": 880,
+                "y": 374
+            },
+            {
+                "name": "Chuồng ngựa",
+                "x": 377,
+                "y": 523
+            },
+            {
+                "name": "Trường bắn",
+                "x": 535,
+                "y": 425
+            },
+            {
+                "name": "Nhà xe",
+                "x": 787,
+                "y": 271
+            },
+            {
+                "name": "Nhà tuyển dụng",
+                "x": 312,
+                "y": 363
+            }
+        ],
+        "last_updated": "2025-08-09T22:43:35.692552"
+    },
+    "emulator-5556": {
+        "houses": [
+            {
+                "name": "Liên minh",
+                "x": 867,
+                "y": 429
+            },
+            {
+                "name": "Trinh sát",
+                "x": 647,
+                "y": 209
+            },
+            {
+                "name": "Doanh trại",
+                "x": 521,
+                "y": 292
+            },
+            {
+                "name": "Chuồng ngựa",
+                "x": 391,
+                "y": 388
+            },
+            {
+                "name": "Trường bắn",
+                "x": 658,
+                "y": 387
+            },
+            {
+                "name": "Nhà xe",
+                "x": 797,
+                "y": 268
+            }
+        ],
+        "last_updated": "2025-08-08T02:30:02.467631"
+    }
+}

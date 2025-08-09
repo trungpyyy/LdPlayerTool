@@ -1,0 +1,6 @@
+**/__pycache__
+*.png
+data/houses.json
+check.py
+cut.py
+test.py
