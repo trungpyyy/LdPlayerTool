@@ -14,7 +14,7 @@ class Farm:
         Parameters:
         resource (str): The type of resource to search for, e.g., "food", "wood", "stone", gold.
         """
-    def perform_action_farm(self, resource="food", delay=0.5):
+    def perform_action_farm(self, resource="food", delay=0.8):
         """Perform search farm action by detecting and tapping on specific icons."""
         
         image_paths = {

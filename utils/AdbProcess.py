@@ -32,37 +32,13 @@ class AdbProcess:
             raise
 
     def tap(self, device_id, x, y):
-        """Tap on device screen with error handling and logging"""
+        """Tap on device screen"""
         try:
-            command = [
-                self.adb_path,
-                "-s", device_id,
-                "shell", "input", "tap", str(x), str(y)
-            ]
-            
-            logger.debug(f"Executing tap command: {' '.join(command)}")
-            
-            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
-            
-            if result.returncode == 0:
-                logger.debug(f"Tap successful at ({x}, {y}) on device {device_id}")
-            else:
-                error_msg = f"Tap failed on device {device_id} at ({x}, {y}): {result.stderr}"
-                logger.error(error_msg)
-                raise subprocess.CalledProcessError(result.returncode, command, result.stdout, result.stderr)
-                
-        except subprocess.TimeoutExpired:
-            error_msg = f"Tap command timed out on device {device_id}"
-            logger.error(error_msg)
-            raise TimeoutError(error_msg)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error tapping on device {device_id}: {e}")
-            raise
-        except Exception as e:
-            error_msg = f"Unexpected error during tap on device {device_id}: {e}"
-            logger.error(error_msg)
-            logger.error(traceback.format_exc())
-            raise
+            command = [self.adb_path, "-s", device_id, "shell", "input", "tap", str(x), str(y)]
+            subprocess.run(command, capture_output=True)
+        except:
+            pass
+
 
     def get_connected_devices(self):
         """Get list of connected devices with error handling and logging"""
@@ -104,66 +80,18 @@ class AdbProcess:
             return []
 
     def capture(self, device_id):
-        """Capture screenshot from device with error handling and logging"""
+        """Capture screenshot from device and return as OpenCV image"""
         try:
-            logger.debug(f"Capturing screenshot from device: {device_id}")
-            
-            command = [
-                self.adb_path,
-                "-s", device_id,
-                "exec-out", "screencap", "-p"
-            ]
-            
-            start_time = time.time()
-            result = subprocess.run(command, capture_output=True, timeout=15)
-            capture_time = time.time() - start_time
-            
-            if result.returncode != 0:
-                error_msg = f"Screenshot capture failed on device {device_id}: {result.stderr.decode()}"
-                logger.error(error_msg)
+            command = [self.adb_path, "-s", device_id, "exec-out", "screencap", "-p"]
+            result = subprocess.run(command, capture_output=True)
+
+            if result.returncode != 0 or not result.stdout:
                 return None
-            
-            if not result.stdout:
-                error_msg = f"Empty screenshot data from device {device_id}"
-                logger.error(error_msg)
-                return None
-            
-            # Convert bytes to numpy array
-            try:
-                img = cv2.imdecode(np.frombuffer(result.stdout, np.uint8), cv2.IMREAD_COLOR)
-                
-                if img is None:
-                    error_msg = f"Failed to decode screenshot from device {device_id}"
-                    logger.error(error_msg)
-                    return None
-                
-                # Save screenshot for debugging
-                try:
-                    cv2.imwrite("screenshot.png", img)
-                    logger.debug(f"Screenshot saved successfully in {capture_time:.2f}s")
-                except Exception as save_error:
-                    logger.warning(f"Could not save screenshot: {save_error}")
-                
-                return img
-                
-            except Exception as decode_error:
-                error_msg = f"Failed to decode screenshot data from device {device_id}: {decode_error}"
-                logger.error(error_msg)
-                return None
-                
-        except subprocess.TimeoutExpired:
-            error_msg = f"Screenshot capture timed out on device {device_id}"
-            logger.error(error_msg)
+
+            return cv2.imdecode(np.frombuffer(result.stdout, np.uint8), cv2.IMREAD_COLOR)
+        except:
             return None
-        except subprocess.CalledProcessError as e:
-            error_msg = f"Error capturing screenshot on device {device_id}: {e}"
-            logger.error(error_msg)
-            return None
-        except Exception as e:
-            error_msg = f"Unexpected error during screenshot capture on device {device_id}: {e}"
-            logger.error(error_msg)
-            logger.error(traceback.format_exc())
-            return None
+
 
     def is_device_connected(self, device_id):
         """Check if a specific device is still connected"""

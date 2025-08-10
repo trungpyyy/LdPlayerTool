@@ -7,6 +7,8 @@ import traceback
 import os
 from datetime import datetime
 
+import cv2
+
 import config
 from utils.HouseManager import HouseManager, load_data  
 from utils.AdbProcess import AdbProcess
@@ -393,11 +395,15 @@ class AdbApp(tk.Tk):
                     if disconnected_pos:
                         self.log_message(f"Disconnection detected on {device}, attempting to reconnect")
                         adb_process.tap(device, 638, 471)
+                        time.sleep(20)
+                        continue
 
                     # Always check
                     pos = detect.find_object_directory(img, "./images/always_check")
                     if pos:
                         adb_process.tap(device, *pos)
+                        time.sleep(3)
+                        continue
 
                     # Recruitment
                     recruitment.houses = houses
@@ -410,26 +416,6 @@ class AdbApp(tk.Tk):
 
                     tasks = self.device_tasks[device]
 
-                    # Farming
-                    if tasks.get("farm"):
-                        army_count = tasks.get("army_count")
-                        next_resource = self.get_next_farm_type(device, tasks)
-
-                        if not next_resource:
-                            pass
-                        else:
-                            # tìm vị trí army rỗng (tùy army_count)
-                            army_pos_1 = detect.find_object_position(img, "./images/armies/army_1.png")
-                            army_pos_2 = detect.find_object_position(img, "./images/armies/army_2.png")
-                            print(f"army_pos_1 {army_pos_1}, army_pos_2 {army_pos_2}, army_count {army_count}")
-                            if army_pos_1 is None and army_count == 1:
-                                farm.perform_action_farm(next_resource)
-                            elif army_pos_2 is None and army_count == 2:
-                                farm.perform_action_farm(next_resource)
-                            else:
-                                # nếu cả 2 đều có army hoặc army_count khác (>2) -> bạn có thể mở rộng logic ở đây
-                                # ví dụ: khi army_count > 2 tìm các ảnh army_3.png... (nếu cần)
-                                pass
 
                     
                     # Training
@@ -446,12 +432,31 @@ class AdbApp(tk.Tk):
                             elif tasks.get("cave"):
                                 explorer.perform_action_cave_probe()
 
+                    # Farming
+                    if tasks.get("farm"):
+                        army_count = tasks.get("army_count")
+                        next_resource = self.get_next_farm_type(device, tasks)
+
+                        if not next_resource:
+                            pass
+                        else:
+                            time.sleep(0.8)
+                            army_pos_1 = detect.find_object_position(img, "./images/armies/army_1.png")
+                            army_pos_2 = detect.find_object_position(img, "./images/armies/army_2.png")
+                            print(f"army_pos_1 {army_pos_1}, army_pos_2 {army_pos_2}, army_count {army_count}")
+                            if army_pos_1 is None and army_count == 1:
+                                farm.perform_action_farm(next_resource)
+                            elif army_pos_2 is None and army_count == 2:
+                                farm.perform_action_farm(next_resource)
+                            else:
+                                # nếu cả 2 đều có army hoặc army_count khác (>2) -> bạn có thể mở rộng logic ở đây
+                                # ví dụ: khi army_count > 2 tìm các ảnh army_3.png... (nếu cần)
+                                pass
                     time.sleep(config.IMAGE_CAPTURE_DELAY)
                     
                 except Exception as e:
                     logger.error(traceback.format_exc())
                     time.sleep(config.ERROR_RETRY_DELAY)  # Wait before retrying
-
             self.log_message(f"All tasks stopped for device {device}")
             del self.device_threads[device]
             
