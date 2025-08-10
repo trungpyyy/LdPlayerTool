@@ -23,7 +23,6 @@ class AdbApp(tk.Tk):
 
         self.adbProcess = AdbProcess(adb_path=adb_path)
         self.home_manager = HouseManager(adb_process=self.adbProcess)
-        self.detect = Detect(adb=self.adbProcess)
         self.device_label = tk.Label(self, text="Select Device:")
         self.device_label.pack(pady=5)
 
@@ -61,11 +60,6 @@ class AdbApp(tk.Tk):
 
         self.home_manager_button = tk.Button(self, text="🏠 Quản lý nhà", command=self.open_house_manager)
         self.home_manager_button.pack(pady=10)
-
-        self.train = TroopTrainer(adb_process=self.adbProcess, detect=self.detect, device=self.current_device)
-        self.explorer = Explore(adb_process=self.adbProcess, detect=self.detect)
-        self.task_farm = Farm(adb_process=self.adbProcess, detect=self.detect)
-        self.task_recruitment = Recruitment(adb_process=self.adbProcess, detect=self.detect)
 
         self.refresh_devices()
     def open_house_manager(self):
@@ -137,8 +131,8 @@ class AdbApp(tk.Tk):
     #         if self.device_paused.get(device, False):
     #             time.sleep(0.5)
     #             continue
-    #         self.train.device = device
-    #         self.train.houses = load_data().get(device, {}).get("houses", [])
+    #         train.device = device
+    #         train.houses = load_data().get(device, {}).get("houses", [])
     #         img = self.process.capture(device)
     #         print(f"Running task {task}")
     #         if task == "train":
@@ -146,9 +140,9 @@ class AdbApp(tk.Tk):
     #             if template is None:
     #                 print(f"[LỖI] Không đọc được template: {template}")
     #                 return False
-    #             existed_xe = self.detect.check_object_exists(image=img, template=template)
+    #             existed_xe = detect.check_object_exists(image=img, template=template)
     #             if existed_xe:
-    #                 self.train.train_xe_phong() 
+    #                 train.train_xe_phong() 
     #     print(f"Task {task} trên thiết bị {device} đã dừng.")
 
     def on_task_changed(self):
@@ -162,61 +156,64 @@ class AdbApp(tk.Tk):
                 t.start()
 
     def run_device_tasks(self, device):
+        adb_process = AdbProcess(adb_path="adb/adb.exe")
+        detect = Detect(adb=adb_process)
+        train = TroopTrainer(adb_process=adb_process, detect=detect, device=device)
+        explorer = Explore(adb_process=adb_process, detect=detect)
+        farm = Farm(adb_process=adb_process, detect=detect)
+        recruitment = Recruitment(adb_process=adb_process, detect=detect)
         while any(self.device_tasks.get(device, {}).values()):
             if self.device_paused.get(device, False):
                 time.sleep(0.5)
                 continue
-            self.train.device = device
-            houses = load_data().get(device, {}).get("houses", [])
-            self.train.houses = houses
-            self.task_farm.device_id = device
-            img = self.adbProcess.capture(device)
-            disconnected_pos = self.detect.find_object_position(img, "./images/disconnected.png")
-            if disconnected_pos:
-                self.adbProcess.tap(device, 638, 471)
 
-            pos = self.detect.find_object_directory(img, "./images/always_check")
+            train.device = device
+            houses = load_data().get(device, {}).get("houses", [])
+            train.houses = houses
+            farm.device_id = device
+
+            img = adb_process.capture(device)
+
+            # Kiểm tra disconnect
+            disconnected_pos = detect.find_object_position(img, "./images/disconnected.png")
+            if disconnected_pos:
+                adb_process.tap(device, 638, 471)
+
+            # Always check
+            pos = detect.find_object_directory(img, "./images/always_check")
             if pos:
-                self.adbProcess.tap(device, *pos)
-            # farm_pos = self.detect.find_object_position(img, "./images/AllArmies.png")
-            # if farm_pos is None:
-            #     self.task_farm.perform_action_farm()
-            
-            self.task_recruitment.houses = houses
-            self.task_recruitment.device_id = device
-            self.task_recruitment.perform_action_requirement(img)
-            
-            
-            for task, enabled in self.device_tasks[device].items():
-                if not enabled:
-                    continue
-                if task == "train":
-                    self.train.auto_train_units(img)
-                elif task == "explore":
-                    if self.detect.check_object_exists_directory(img, "./images/explore_check"):
-                        coord = next((h for h in houses if h["name"] == "Trinh sát"), None)
-                        if coord:
-                            pos_tap = (coord["x"], coord["y"])
-                            self.explorer.tap_point = pos_tap
-                        else:
-                            print("❌ Không tìm thấy tọa độ Trinh sát, không thể dò mây.")
-                            continue
-                        self.explorer.device_id = device
-                        self.explorer.perform_action_sequence()
-                elif task == "cave":
-                    if self.detect.check_object_exists_directory(img, "./images/explore_check"):
-                        coord = next((h for h in houses if h["name"] == "Trinh sát"), None)
-                        if coord:
-                            pos_tap = (coord["x"], coord["y"])
-                            self.explorer.tap_point = pos_tap
-                        else:
-                            print("❌ Không tìm thấy tọa độ Dò hang, không thể dò hang.")
-                            continue
-                        self.explorer.device_id = device
-                        self.explorer.perform_action_cave_probe()
+                adb_process.tap(device, *pos)
+
+            # Tuyển quân
+            recruitment.houses = houses
+            recruitment.device_id = device
+            recruitment.perform_action_requirement(img)
+
+            # Explorer setup
+            explorer.houses = houses
+            explorer.device_id = device
+
+            tasks = self.device_tasks[device]
+
+            # Train
+            if tasks.get("train"):
+                train.auto_train_units(img)
+
+            # Explore / Cave
+            if tasks.get("explore") or tasks.get("cave"):
+                if detect.check_object_exists_directory(img, "./images/explore_check"):
+                    if tasks.get("explore") and tasks.get("cave"):
+                        explorer.perform_action_explore_and_cave_probe()
+                    elif tasks.get("explore"):
+                        explorer.perform_action_sequence()
+                    elif tasks.get("cave"):
+                        explorer.perform_action_cave_probe()
+
             time.sleep(1)
+
         print(f"Tất cả task trên thiết bị {device} đã dừng.")
         del self.device_threads[device]
+
 
 # ---- Chạy ứng dụng GUI ----
 if __name__ == "__main__":

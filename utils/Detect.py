@@ -32,6 +32,7 @@ class Detect:
                 template_path = os.path.join(template_dir, filename)
                 if self.check_object_exists(image, template_path, threshold):
                     return True
+        
         return False
 
     def find_object_directory(self, image, template_dir, threshold=0.9):
