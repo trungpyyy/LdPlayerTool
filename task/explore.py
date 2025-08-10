@@ -44,7 +44,7 @@ class Explore:
                 self.adb_process.tap(self.device_id, *pos)
                 time.sleep(0.3)
             else:
-                break
+                return
 
     def perform_action_sequence(self):
         coord = next((h for h in self.houses if h["name"] == "Trinh sát"), None)
@@ -104,9 +104,8 @@ class Explore:
         time.sleep(0.8)
         cave_explore_pos = self.detect.wait_until_found(self.device_id, "./images/cave_explore.png",timeout=5, threshold=0.98)
         img = self.adb_process.capture(self.device_id)
-        cave_d1_pos = self.detect.find_object_position(img, "./images/d1.png", threshold=0.99)
         cave_d2_pos = self.detect.find_object_position(img, "./images/d2.png", threshold=0.99)
-        if cave_explore_pos and (cave_d1_pos == None and cave_d2_pos == None):
+        if cave_explore_pos and cave_d2_pos == None:
             # Tap vào 2 tọa độ cố định (nếu cần, bạn có thể tìm template thay vì hardcode)
             self.adb_process.tap(self.device_id, 750, 212)  # CAVE_PROBE 2
             time.sleep(0.85)

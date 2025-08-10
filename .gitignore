@@ -4,3 +4,4 @@ data/houses.json
 check.py
 cut.py
 test.py
+logs/

@@ -9,28 +9,47 @@ class Recruitment:
         self.detect = detect
         self.device_id = device_id
         self.houses = houses or []
-    
+        
     def perform_action_requirement(self, img):
         requirement_pos = self.detect.find_object_position(img, "./images/recruitment/recruitment_1.png")
-        if requirement_pos:
-            coords = next((h for h in self.houses if h["name"] == "Nhà tuyển dụng"), None)
-            if coords:
-                pos = (coords["x"], coords["y"])
-                self.adb_process.tap(self.device_id, *pos)
-                time.sleep(0.5)
-                self.adb_process.tap(self.device_id, *self.detect.wait_until_found(self.device_id, "./images/recruitment/recruitment_2.png"))
-                time.sleep(0.5)
-                self.adb_process.tap(self.device_id, *self.detect.wait_until_found(self.device_id, "./images/recruitment/open.png"))
-                time.sleep(2)
-                confirm_1 = self.detect.wait_until_found(self.device_id, "./images/recruitment/confirm_1.png")
-                if confirm_1:
-                    self.adb_process.tap(self.device_id, *confirm_1)
-                time.sleep(0.5)
-                confirm_2 = self.detect.wait_until_found(self.device_id, "./images/recruitment/confirm_2.png")
-                if confirm_2:
-                    self.adb_process.tap(self.device_id, *confirm_2)
-                time.sleep(0.5)
-                self.adb_process.tap(self.device_id, *self.detect.wait_until_found(self.device_id, "./images/always_check/back.png"))
-                
+        if not requirement_pos:
+            return
+
+        coords = next((h for h in self.houses if h["name"] == "Nhà tuyển dụng"), None)
+        if not coords:
+            return
+
+        self.adb_process.tap(self.device_id, coords["x"], coords["y"])
+        time.sleep(0.5)
+
+        pos = self.detect.wait_until_found(self.device_id, "./images/recruitment/recruitment_2.png")
+        if pos:
+            self.adb_process.tap(self.device_id, *pos)
         else:
-            pass
+            return
+        time.sleep(0.5)
+
+        # open
+        pos = self.detect.wait_until_found(self.device_id, "./images/recruitment/open.png")
+        if pos:
+            self.adb_process.tap(self.device_id, *pos)
+        else:
+            return
+        time.sleep(2)
+
+        # confirm_1
+        pos = self.detect.wait_until_found(self.device_id, "./images/recruitment/confirm_1.png")
+        if pos:
+            self.adb_process.tap(self.device_id, *pos)
+            time.sleep(0.5)
+
+        # confirm_2
+        pos = self.detect.wait_until_found(self.device_id, "./images/recruitment/confirm_2.png")
+        if pos:
+            self.adb_process.tap(self.device_id, *pos)
+            time.sleep(0.5)
+
+        # back
+        pos = self.detect.wait_until_found(self.device_id, "./images/always_check/back.png")
+        if pos:
+            self.adb_process.tap(self.device_id, *pos)
