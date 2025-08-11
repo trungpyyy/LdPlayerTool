@@ -443,10 +443,13 @@ class AdbApp(tk.Tk):
                             time.sleep(0.8)
                             army_pos_1 = detect.find_object_position(img, "./images/armies/army_1.png")
                             army_pos_2 = detect.find_object_position(img, "./images/armies/army_2.png")
+                            army_pos_3 = detect.find_object_position(img, "./images/armies/army_3.png")
                             print(f"army_pos_1 {army_pos_1}, army_pos_2 {army_pos_2}, army_count {army_count}")
                             if army_pos_1 is None and army_count == 1:
                                 farm.perform_action_farm(next_resource)
                             elif army_pos_2 is None and army_count == 2:
+                                farm.perform_action_farm(next_resource)
+                            elif army_pos_3 is None and army_count == 3:
                                 farm.perform_action_farm(next_resource)
                             else:
                                 # nếu cả 2 đều có army hoặc army_count khác (>2) -> bạn có thể mở rộng logic ở đây
