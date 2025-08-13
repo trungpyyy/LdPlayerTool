@@ -12,7 +12,7 @@ ADB_RETRY_ATTEMPTS = 3
 
 # ==================== IMAGE RECOGNITION SETTINGS ====================
 TEMPLATE_MATCHING_THRESHOLD = 0.9  # 0.0 to 1.0 (higher = more strict)
-IMAGE_CAPTURE_DELAY = 4.0  # seconds between screenshots
+IMAGE_CAPTURE_DELAY = 5.0  # seconds between screenshots
 TEMPLATE_SEARCH_TIMEOUT = 10  # seconds to wait for objects
 
 # ==================== TASK SETTINGS ====================
@@ -74,7 +74,7 @@ PERFORMANCE_LOG_INTERVAL = 60  # seconds
 # Debug settings
 SAVE_SCREENSHOTS = False
 SCREENSHOT_DIRECTORY = "screenshots"
-ENABLE_VERBOSE_LOGGING = False
+ENABLE_VERBOSE_LOGGING = True
 
 # ==================== VALIDATION FUNCTIONS ====================
 def validate_config():

@@ -75,6 +75,7 @@ class Explore:
             print("❌ Không tìm thấy dotham_1.png")
             return
 
+        time.sleep(0.85)
         # Tap vào 2 tọa độ cố định (nếu cần, bạn có thể tìm template thay vì hardcode)
         self.adb_process.tap(self.device_id, 750, 212)  # CAVE_PROBE 2
         time.sleep(0.85)

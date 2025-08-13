@@ -395,9 +395,16 @@ class AdbApp(tk.Tk):
                     if disconnected_pos:
                         self.log_message(f"Disconnection detected on {device}, attempting to reconnect")
                         adb_process.tap(device, 638, 471)
-                        time.sleep(20)
+                        time.sleep(30)
                         continue
-
+                    # Check for login
+                    other_login = detect.find_object_position(img, "./images/other_login.png")
+                    if other_login:
+                        self.log_message(f"'Other Login' screen detected on {device}, attempting to log in")
+                        confirm = detect.wait_until_found(device, "./images/confirm.png")
+                        time.sleep(300)
+                        adb_process.tap(device, *confirm)
+                        continue
                     # Always check
                     pos = detect.find_object_directory(img, "./images/always_check")
                     if pos:
@@ -440,11 +447,9 @@ class AdbApp(tk.Tk):
                         if not next_resource:
                             pass
                         else:
-                            time.sleep(0.8)
                             army_pos_1 = detect.find_object_position(img, "./images/armies/army_1.png")
                             army_pos_2 = detect.find_object_position(img, "./images/armies/army_2.png")
                             army_pos_3 = detect.find_object_position(img, "./images/armies/army_3.png")
-                            print(f"army_pos_1 {army_pos_1}, army_pos_2 {army_pos_2}, army_count {army_count}")
                             if army_pos_1 is None and army_count == 1:
                                 farm.perform_action_farm(next_resource)
                             elif army_pos_2 is None and army_count == 2:

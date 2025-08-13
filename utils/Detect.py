@@ -148,6 +148,7 @@ class Detect:
         :param threshold: Ngưỡng tương đồng để xác định vị trí.
         :return: Vị trí tâm (x, y) tròn chính giữa của đối tượng nếu tìm thấy, ngược lại None.
         """
+        start_time = time.time()
         try:
             if image is None:
                 logger.error("Input image is None")
@@ -190,8 +191,8 @@ class Detect:
             # Calculate center position
             x = int(best_x + template_img.shape[1] / 2)
             y = int(best_y + template_img.shape[0] / 2)
-            
-            logger.debug(f"Object found at ({x}, {y}) with confidence {confidence:.3f} using template {template}")
+            inference_time = time.time() - start_time
+            logger.info(f"Found {template.split('/')[-1]}: conf={confidence:.3f}, time={inference_time:.4f}s")
             return (x, y)
             
         except Exception as e:
