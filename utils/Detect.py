@@ -21,6 +21,7 @@ class Detect:
         :param threshold: Ngưỡng tương đồng để xác định sự tồn tại.
         :return: True nếu đối tượng tồn tại, ngược lại False.
         """
+        start_time = time.time()
         try:
             if image is None:
                 logger.error("Input image is None")
@@ -48,11 +49,12 @@ class Detect:
             logger.debug(f"Template matching result for {template}: max_val={max_val:.3f}, threshold={threshold}")
             
             exists = np.any(result >= threshold)
+            inference_time = time.time() - start_time
             if exists:
-                logger.debug(f"Object found in template {template} with confidence {max_val:.3f}")
+                logger.debug(f"Object found in template {template} with confidence {max_val:.3f}, time={inference_time:.4f}s")
+                logger.info(f"Object found in template {template} with confidence {max_val:.3f}, time={inference_time:.4f}s")
             else:
-                logger.debug(f"Object not found in template {template}, best match: {max_val:.3f}")
-                
+                logger.debug(f"Object not found in template {template}, best match: {max_val:.3f}")         
             return exists
             
         except Exception as e:

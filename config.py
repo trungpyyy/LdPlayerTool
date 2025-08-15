@@ -12,7 +12,7 @@ ADB_RETRY_ATTEMPTS = 3
 
 # ==================== IMAGE RECOGNITION SETTINGS ====================
 TEMPLATE_MATCHING_THRESHOLD = 0.9  # 0.0 to 1.0 (higher = more strict)
-IMAGE_CAPTURE_DELAY = 5.0  # seconds between screenshots
+IMAGE_CAPTURE_DELAY = 1.5 # seconds between screenshots
 TEMPLATE_SEARCH_TIMEOUT = 10  # seconds to wait for objects
 
 # ==================== TASK SETTINGS ====================
@@ -52,7 +52,7 @@ CONTINUE_ON_ERROR = True
 # ==================== DEVICE SETTINGS ====================
 # Filter out certain device types
 FILTER_LOCALHOST_DEVICES = True
-LOCALHOST_PATTERNS = ["127.0.0.1", "localhost"]
+LOCALHOST_PATTERNS = []
 
 # Device connection settings
 DEVICE_CHECK_INTERVAL = 5.0  # seconds

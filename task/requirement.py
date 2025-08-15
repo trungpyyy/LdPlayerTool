@@ -53,3 +53,4 @@ class Recruitment:
         pos = self.detect.wait_until_found(self.device_id, "./images/always_check/back.png")
         if pos:
             self.adb_process.tap(self.device_id, *pos)
+        time.sleep(1)

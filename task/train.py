@@ -75,3 +75,4 @@ class TroopTrainer:
             if existed:
                 print(f"Phát hiện {unit['name']} — bắt đầu huấn luyện.")
                 unit["train_func"]()
+                time.sleep(1)

@@ -56,7 +56,7 @@ class Explore:
             return
         time.sleep(0.5)
         self._tap_by_template_list(ACTION_IMAGES)
-        time.sleep(0.85)
+        time.sleep(5)
 
     def perform_action_cave_probe(self):
         coord = next((h for h in self.houses if h["name"] == "Trinh sát"), None)
@@ -84,7 +84,7 @@ class Explore:
 
         # Thực hiện các bước còn lại
         self._tap_by_template_list(ACTION_IMAGES_CAVE_PROBE)
-        time.sleep(0.85)
+        time.sleep(5)
 
     def perform_action_explore_and_cave_probe(self):
         coord = next((h for h in self.houses if h["name"] == "Trinh sát"), None)
@@ -112,10 +112,8 @@ class Explore:
             time.sleep(0.85)
             self.adb_process.tap(self.device_id, 993, 605)  # CAVE_PROBE 3
             time.sleep(0.85)
-
-            # Thực hiện các bước còn lại
             self._tap_by_template_list(ACTION_IMAGES_CAVE_PROBE)
-            time.sleep(0.85)
         else:
             self._tap_by_template_list(ACTION_IMAGES_CAVE_EXPLORE)
-            time.sleep(0.85)
+        self.detect.wait_until_found(self.device_id, "./images/home.png")
+        time.sleep(0.5)
