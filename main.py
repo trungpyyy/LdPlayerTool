@@ -464,6 +464,7 @@ class AdbApp(tk.Tk):
                                 # nếu cả 2 đều có army hoặc army_count khác (>2) -> bạn có thể mở rộng logic ở đây
                                 # ví dụ: khi army_count > 2 tìm các ảnh army_3.png... (nếu cần)
                                 pass
+                    time.sleep(config.IMAGE_CAPTURE_DELAY)
                     
                 except Exception as e:
                     logger.error(traceback.format_exc())

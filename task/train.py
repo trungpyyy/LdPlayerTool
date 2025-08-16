@@ -1,6 +1,8 @@
 import time
 import cv2
-from utils import AdbProcess, Detect
+from utils.AdbProcess import AdbProcess
+from utils.Detect import Detect
+
 
 class TroopTrainer:
     def __init__(self, adb_process: AdbProcess, detect: Detect, device, houses=None):
@@ -14,11 +16,16 @@ class TroopTrainer:
         time.sleep(0.8)
         self.adbProcess.tap(self.device, *pos)
 
-    def _tap_template_and_train(self, template_path: str):
+    def _tap_template_and_train(self, template_path: str, train_xe= False):
         pos_tap = self.detect.wait_until_found(self.device, template=template_path, timeout=10)
         if pos_tap:
             self.adbProcess.tap(self.device, *pos_tap)
         time.sleep(0.5)
+        if train_xe:
+            xe_pos = self.detect.wait_until_found(self.device, "./images/t1_train.png")
+            if xe_pos:
+                self.adbProcess.tap(self.device, *xe_pos)
+        time.sleep(0.2)
         self.adbProcess.tap(self.device, 985, 592)  # Tap on "Train" button
         time.sleep(0.5)
 
@@ -28,7 +35,7 @@ class TroopTrainer:
             print(f"Training {label}...")
             pos = (coords["x"], coords["y"])
             self._tap_twice(pos)
-            self._tap_template_and_train(template_path)
+            self._tap_template_and_train(template_path, house_name=="Xe Phóng")
         else:
             print(f"Chưa có tọa độ cho {house_name}.")
 
