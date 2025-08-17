@@ -395,7 +395,8 @@ class AdbApp(tk.Tk):
                     if disconnected_pos:
                         self.log_message(f"Disconnection detected on {device}, attempting to reconnect")
                         adb_process.tap(device, 638, 471)
-                        time.sleep(30)
+                        detect.wait_until_found(device, "./images/home.png", timeout=100)
+                        time.sleep(0.5)
                         continue
                     # Check for login
                     other_login = detect.find_object_position(img, "./images/other_login.png")
@@ -414,7 +415,8 @@ class AdbApp(tk.Tk):
                     goback_pos = detect.find_object_position(img, "./images/goback.png")
                     if goback_pos:
                         adb_process.tap(device, *goback_pos)
-                        time.sleep(3)
+                        detect.wait_until_found(device, "./images/home.png")
+                        time.sleep(0.5)
                         continue
                     # Recruitment
                     recruitment.houses = houses
@@ -425,10 +427,8 @@ class AdbApp(tk.Tk):
                     explorer.houses = houses
                     explorer.device_id = device
 
-                    tasks = self.device_tasks[device]
+                    tasks = self.device_tasks[device]           
 
-
-                    
                     # Training
                     if tasks.get("train"):
                         train.auto_train_units(img)

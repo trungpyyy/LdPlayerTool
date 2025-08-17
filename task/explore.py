@@ -116,4 +116,3 @@ class Explore:
         else:
             self._tap_by_template_list(ACTION_IMAGES_CAVE_EXPLORE)
         self.detect.wait_until_found(self.device_id, "./images/home.png")
-        time.sleep(0.5)

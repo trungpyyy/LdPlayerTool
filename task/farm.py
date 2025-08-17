@@ -58,7 +58,6 @@ class Farm:
                     time.sleep(delay)
                     tap_wait("goback")
                     self.detect.wait_until_found(self.device_id, "./images/home.png")
-                    time.sleep(0.5)
 
         def find_gather_btn():
             if self.detect.wait_until_found(self.device_id, image_paths["resource_gather_btn"]):
@@ -68,7 +67,6 @@ class Farm:
                     if tap_wait("matched") is not None:
                         tap_wait("goback")
                         self.detect.wait_until_found(self.device_id, "./images/home.png")
-                        time.sleep(0.5)
 
         t1 = threading.Thread(target=find_matching)
         t2 = threading.Thread(target=find_gather_btn)
