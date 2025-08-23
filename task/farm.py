@@ -15,7 +15,51 @@ class Farm:
         Parameters:
         resource (str): The type of resource to search for, e.g., "food", "wood", "stone", gold.
         """
+    def perform_action_using_up(self):
+        image_paths = {
+            "bag": "./images/bag.png",
+            "up": "./images/farm/up.png",
+            "farm_8": "./images/farm/farm_8.png",
+            "farm_24": "./images/farm/farm_24.png",
+            "using": "./images/farm/using.png",
+            "close": "./images/always_check/close.png"
+        }
+        def tap_wait(image_key):
+            coords = self.detect.wait_until_found(self.device_id, image_paths[image_key])
+            if not coords:
+                return None
+            self.adb_process.tap(self.device_id, *coords)
+            return True
+        for key in ["bag", "up"]:
+            if tap_wait(key) is None:
+                return
+        stop_event = threading.Event()
+        def find_8():
+            if self.detect.wait_until_found(self.device_id, image_paths["farm_8"]):
+                if not stop_event.is_set():
+                    stop_event.set()
+                    for key in ["farm_8", "using", "close"]:
+                        if tap_wait(key) is None:
+                            return
 
+        def find_24():
+            if self.detect.wait_until_found(self.device_id, image_paths["farm_24"]):
+                if not stop_event.is_set():
+                    stop_event.set()
+                    for key in ["farm_24", "using", "close"]:
+                        if tap_wait(key) is None:
+                            return
+
+        t1 = threading.Thread(target=find_8)
+        t2 = threading.Thread(target=find_24)
+
+        t1.start()
+        t2.start()
+
+        t1.join()
+        t2.join()        
+        
+        
     def perform_action_farm(self, resource="food", delay=0.8):
         """Perform search farm action by detecting and tapping on specific icons."""
         
@@ -64,6 +108,9 @@ class Farm:
                 if not stop_event.is_set():
                     stop_event.set()
                     tap_wait("resource_gather_btn")
+                    coords = self.detect.wait_until_found(self.device_id, "./images/farm/rm_farm.png")
+                    if coords is not None:
+                        self.adb_process.tap(self.device_id, *coords)
                     if tap_wait("matched") is not None:
                         tap_wait("goback")
                         self.detect.wait_until_found(self.device_id, "./images/home.png")

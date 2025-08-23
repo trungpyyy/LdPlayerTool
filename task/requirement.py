@@ -11,7 +11,7 @@ class Recruitment:
         self.houses = houses or []
         
     def perform_action_requirement(self, img):
-        requirement_pos = self.detect.find_object_position(img, "./images/recruitment/recruitment_1.png")
+        requirement_pos = self.detect.find_object_directory(img, "./images/recruitment/check")
         if not requirement_pos:
             return
 

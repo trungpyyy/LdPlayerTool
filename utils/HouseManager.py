@@ -10,12 +10,12 @@ DATA_FILE = "data/houses.json"
 
 HOUSE_TYPES = [
     "Trinh sát",
-    "Liên minh",
     "Doanh trại",
     "Chuồng ngựa",
     "Trường bắn",
     "Nhà xe",
-    "Nhà tuyển dụng"
+    "Nhà tuyển dụng",
+    "Xây dựng"
 ]
 
 # --- Hàm xử lý file JSON ---

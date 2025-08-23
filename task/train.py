@@ -25,7 +25,7 @@ class TroopTrainer:
             xe_pos = self.detect.wait_until_found(self.device, "./images/t1_train.png")
             if xe_pos:
                 self.adbProcess.tap(self.device, *xe_pos)
-        time.sleep(0.2)
+        time.sleep(0.7)
         self.adbProcess.tap(self.device, 985, 592)  # Tap on "Train" button
         time.sleep(0.5)
 
@@ -40,16 +40,16 @@ class TroopTrainer:
             print(f"Chưa có tọa độ cho {house_name}.")
 
     def train_bo_binh(self):
-        self._train_unit("Doanh trại", "./images/train_bo_binh_3.png", "Doanh trại")
+        self._train_unit("Doanh trại", "./images/train/resource/train_bo_binh_3.png", "Doanh trại")
 
     def train_ky_binh(self):
-        self._train_unit("Chuồng ngựa", "./images/train_ky_binh_3.png", "Kỵ Binh")
+        self._train_unit("Chuồng ngựa", "./images/train/resource/train_ky_binh_3.png", "Kỵ Binh")
 
     def train_cung(self):
-        self._train_unit("Trường bắn", "./images/train_cung_3.png", "Cung Pháp")
+        self._train_unit("Trường bắn", "./images/train/resource/train_cung_3.png", "Cung Pháp")
 
     def train_xe_phong(self):
-        self._train_unit("Nhà xe", "./images/train_xe_3.png", "Xe Phóng")
+        self._train_unit("Nhà xe", "./images/train/resource/train_xe_3.png", "Xe Phóng")
 
     def auto_train_units(self, img):
         """Tự động huấn luyện các đơn vị nếu template tương ứng xuất hiện trong ảnh chụp."""

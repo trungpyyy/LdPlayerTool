@@ -16,6 +16,7 @@ from utils.Detect import Detect
 from task.train import TroopTrainer
 from task.explore import Explore
 from task.farm import Farm
+from task.built import Built
 from task.requirement import Recruitment
 
 # ---------------- LOGGING SETUP ------------------
@@ -116,8 +117,12 @@ class AdbApp(tk.Tk):
                 "wood": tk.BooleanVar(),
                 "stone": tk.BooleanVar(),
                 "gold": tk.BooleanVar(),
+                "built": tk.BooleanVar(),
+                "recruitment": tk.BooleanVar(),
                 "army_count": tk.IntVar(value=1),
             }
+            self.checkbox_recruitment = tk.Checkbutton(self, text="Tuyển dụng", variable=self.tasks["recruitment"], command=self.on_task_changed)
+            self.checkbox_built = tk.Checkbutton(self, text="Xây dựng", variable=self.tasks["built"], command=self.on_task_changed)
             self.checkbox_farm = tk.Checkbutton(self, text="Thu hoạch", variable=self.tasks["farm"], command=self.on_task_changed)
             self.checkbox_explore = tk.Checkbutton(self, text="Dò mây", variable=self.tasks["explore"], command=self.on_task_changed)
             self.checkbox_cave = tk.Checkbutton(self, text="Dò hang", variable=self.tasks["cave"], command=self.on_task_changed)
@@ -126,6 +131,8 @@ class AdbApp(tk.Tk):
             Thu hoạch
             Food Wood Stone Gold
             """
+            self.checkbox_built.pack(anchor="w", padx=20)
+            self.checkbox_recruitment.pack(anchor="w", padx=20)
             self.checkbox_farm.pack(anchor="w", padx=20)
             resources_frame = tk.Frame(self)
             resources_frame.pack(anchor="w", padx=20)
@@ -369,6 +376,7 @@ class AdbApp(tk.Tk):
             train = TroopTrainer(adb_process=adb_process, detect=detect, device=device)
             explorer = Explore(adb_process=adb_process, detect=detect)
             farm = Farm(adb_process=adb_process, detect=detect)
+            built = Built(adb_process=adb_process, detect=detect)
             recruitment = Recruitment(adb_process=adb_process, detect=detect)
             
             while any(self.device_tasks.get(device, {}).values()):
@@ -378,10 +386,7 @@ class AdbApp(tk.Tk):
                         continue
 
                     # Update device references
-                    train.device = device
                     houses = load_data().get(device, {}).get("houses", [])
-                    train.houses = houses
-                    farm.device_id = device
                     
                     # Capture screenshot
                     img = adb_process.capture(device)
@@ -418,23 +423,30 @@ class AdbApp(tk.Tk):
                         detect.wait_until_found(device, "./images/home.png")
                         time.sleep(0.5)
                         continue
-                    # Recruitment
-                    recruitment.houses = houses
-                    recruitment.device_id = device
-                    recruitment.perform_action_requirement(img)
-
-                    # Explorer setup
-                    explorer.houses = houses
-                    explorer.device_id = device
 
                     tasks = self.device_tasks[device]           
+                    # Recruitment
+                    if tasks.get("recruitment"):
+                        recruitment.houses = houses
+                        recruitment.device_id = device
+                        recruitment.perform_action_requirement(img)
 
                     # Training
                     if tasks.get("train"):
+                        train.device = device
+                        train.houses = houses
                         train.auto_train_units(img)
-
+                    if tasks.get("built"):
+                        built.houses = houses
+                        built.device_id = device
+                        built_check = detect.check_object_exists(img, "images/built/check_build.png")
+                        if built_check:
+                            built.perform_action_build()
                     # Explore / Cave
                     if tasks.get("explore") or tasks.get("cave"):
+                        # Explorer setup
+                        explorer.houses = houses
+                        explorer.device_id = device
                         if detect.check_object_exists_directory(img, "./images/explore_check"):
                             if tasks.get("explore") and tasks.get("cave"):
                                 explorer.perform_action_explore_and_cave_probe()
@@ -445,6 +457,11 @@ class AdbApp(tk.Tk):
 
                     # Farming
                     if tasks.get("farm"):
+                        farm_check = detect.check_object_exists_directory(img, "./images/farm/check")
+                        farm.device_id = device
+                        
+                        if farm_check is False:
+                            farm.perform_action_using_up()
                         army_count = tasks.get("army_count")
                         next_resource = self.get_next_farm_type(device, tasks)
 
@@ -454,11 +471,14 @@ class AdbApp(tk.Tk):
                             army_pos_1 = detect.find_object_position(img, "./images/armies/army_1.png")
                             army_pos_2 = detect.find_object_position(img, "./images/armies/army_2.png")
                             army_pos_3 = detect.find_object_position(img, "./images/armies/army_3.png")
+                            army_pos_4 = detect.find_object_position(img, "./images/armies/army_4.png")
                             if army_pos_1 is None and army_count == 1:
                                 farm.perform_action_farm(next_resource)
                             elif army_pos_2 is None and army_count == 2:
                                 farm.perform_action_farm(next_resource)
                             elif army_pos_3 is None and army_count == 3:
+                                farm.perform_action_farm(next_resource)
+                            elif army_pos_4 is None and army_count == 4:
                                 farm.perform_action_farm(next_resource)
                             else:
                                 # nếu cả 2 đều có army hoặc army_count khác (>2) -> bạn có thể mở rộng logic ở đây
