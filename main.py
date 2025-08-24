@@ -13,11 +13,12 @@ import config
 from utils.HouseManager import HouseManager, load_data  
 from utils.AdbProcess import AdbProcess
 from utils.Detect import Detect
+from utils.state_manager import StateManager
 from task.train import TroopTrainer
 from task.explore import Explore
 from task.farm import Farm
 from task.built import Built
-from task.requirement import Recruitment
+from task.recruitment import Recruitment
 
 # ---------------- LOGGING SETUP ------------------
 def setup_logging():
@@ -66,6 +67,9 @@ class AdbApp(tk.Tk):
             self._init_components(adb_path)
             self._init_ui()
             
+            # Update UI state after initialization
+            self._update_pause_button_state()
+            
             logger.info("AdbApp initialized successfully")
             
         except Exception as e:
@@ -79,16 +83,82 @@ class AdbApp(tk.Tk):
         try:
             self.adbProcess = AdbProcess(adb_path=adb_path)
             self.home_manager = HouseManager(adb_process=self.adbProcess)
+            
+            # Initialize state manager
+            self.state_manager = StateManager()
+            
+            # Initialize device-related variables
             self.device_tasks = {}
             self.current_device = None
             self.device_threads = {}
             self.device_paused = {}
             self.farm_priority = {}
             self.current_farm_index = {}
+            
+            # Load saved states for known devices
+            self._load_saved_device_states()
+            
             logger.info("Core components initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize core components: {e}")
             raise
+    
+    def _load_saved_device_states(self):
+        """Load saved states for known devices"""
+        try:
+            # Load saved device states
+            for device_id in self.state_manager.get_all_devices():
+                device_state = self.state_manager.get_device_state(device_id)
+                
+                # Load tasks
+                if device_state.get("tasks"):
+                    self.device_tasks[device_id] = device_state["tasks"]
+                
+                # Don't load pause state - always start with not paused (show "Bắt đầu")
+                # self.device_paused[device_id] will be initialized when device is selected
+                
+                # Load farm priority and index
+                if device_state.get("farm_priority"):
+                    self.farm_priority[device_id] = device_state["farm_priority"]
+                if device_state.get("current_farm_index") is not None:
+                    self.current_farm_index[device_id] = device_state["current_farm_index"]
+            
+            logger.info(f"Loaded saved states for {len(self.state_manager.get_all_devices())} devices")
+            
+        except Exception as e:
+            logger.error(f"Failed to load saved device states: {e}")
+            logger.error(traceback.format_exc())
+
+    def get_current_device_pause_state(self):
+        """Get current device's pause state"""
+        if self.current_device and self.current_device in self.device_paused:
+            return self.device_paused[self.current_device]
+        return True  # Default to paused (show "Bắt đầu")
+
+    def _update_pause_button_state(self):
+        """Update pause button state based on current device"""
+        try:
+            if self.current_device and self.current_device in self.device_paused:
+                paused = self.device_paused[self.current_device]
+                if paused:
+                    self.pause_button.config(text="▶️ Bắt đầu")
+                else:
+                    self.pause_button.config(text="⏸ Tạm dừng")
+                self.log_message(f"Updated button state for {self.current_device}: {'Paused' if paused else 'Running'}")
+            else:
+                # Default state when no device is selected or device state is missing
+                if self.current_device:
+                    # Device exists but no pause state, initialize it
+                    self.device_paused[self.current_device] = True
+                    self.pause_button.config(text="▶️ Bắt đầu")
+                    self.log_message(f"Initialized pause state for {self.current_device}: Paused")
+                else:
+                    # No device selected
+                    self.pause_button.config(text="▶️ Bắt đầu")
+        except Exception as e:
+            logger.error(f"Failed to update pause button state: {e}")
+            # Fallback: always show "Bắt đầu" on error
+            self.pause_button.config(text="▶️ Bắt đầu")
 
     def _init_ui(self):
         """Initialize UI components with error handling"""
@@ -145,7 +215,7 @@ class AdbApp(tk.Tk):
             # spin task 1-5 with self.tasks["army_count"]
             self.spin = tk.Spinbox(from_=1, to=5,
                     font=("Arial", 14),
-                    textvariable=self.tasks["army_count"],
+                textvariable=self.tasks["army_count"],
                     width=5)
             self.spin.bind("<Return>", self.on_task_changed)
             self.spin.pack(padx=20, pady=5)
@@ -163,6 +233,24 @@ class AdbApp(tk.Tk):
 
             self.home_manager_button = tk.Button(self, text="🏠 Quản lý nhà", command=self.open_house_manager)
             self.home_manager_button.pack(pady=10)
+
+            # State management buttons
+            state_frame = tk.Frame(self)
+            state_frame.pack(pady=5)
+            
+            self.state_info_button = tk.Button(state_frame, text="ℹ️ Thông tin trạng thái", command=self.show_state_info)
+            self.state_info_button.pack(side="left", padx=5)
+            
+            self.clear_state_button = tk.Button(state_frame, text="🗑️ Xóa trạng thái", command=self.clear_current_device_state)
+            self.clear_state_button.pack(side="left", padx=5)
+            
+            # Debug button
+            self.debug_button = tk.Button(state_frame, text="🐛 Debug", command=self.debug_device_states)
+            self.debug_button.pack(side="left", padx=5)
+            
+            # Reset button
+            self.reset_button = tk.Button(state_frame, text="🔄 Reset States", command=self.reset_device_states)
+            self.reset_button.pack(side="left", padx=5)
 
             # Log display
             self.log_text = tk.Text(self, height=config.LOG_DISPLAY_HEIGHT, width=config.LOG_DISPLAY_WIDTH)
@@ -210,7 +298,7 @@ class AdbApp(tk.Tk):
         try:
             if not self.current_device:
                 self.log_message("No device selected for house management", "WARNING")
-                messagebox.showwarning("Warning", "Please select a device first")
+                messagebox.showwarning("Warning", "Vui lòng chọn device trước")
                 return
                 
             self.log_message(f"Opening house manager for device: {self.current_device}")
@@ -248,10 +336,31 @@ class AdbApp(tk.Tk):
                     return
                     
                 self.device_combo['values'] = devices
-                self.device_combo.current(0)
+                
+                # Try to select the last used device, otherwise select first
+                last_device = self.state_manager.get_last_device()
+                if last_device and last_device in devices:
+                    self.device_combo.set(last_device)
+                    self.log_message(f"Restored last used device: {last_device}")
+                else:
+                    self.device_combo.current(0)
+                
                 self.status_label.config(text=f"✔ Found {len(devices)} device(s).", fg="green")
                 self.log_message(f"Found {len(devices)} device(s): {', '.join(devices)}")
-                self.on_device_selected()
+                
+                # After refreshing, update the current device selection and button state
+                if self.current_device:
+                    # If current device still exists in new list, keep its state
+                    if self.current_device in devices:
+                        # Device still exists, update button to reflect current state
+                        self._update_pause_button_state()
+                    else:
+                        # Current device no longer exists, clear selection
+                        self.current_device = None
+                        self.pause_button.config(text="▶️ Bắt đầu")
+                else:
+                    # No device was selected, trigger device selection
+                    self.on_device_selected()
                 
         except Exception as e:
             error_msg = f"Failed to refresh devices: {e}"
@@ -260,79 +369,194 @@ class AdbApp(tk.Tk):
             self.status_label.config(text="❌ Error refreshing devices", fg="red")
             messagebox.showerror("Error", error_msg)
 
+    def reset_device_states(self):
+        """Reset and synchronize all device states"""
+        try:
+            self.log_message("Resetting device states...", "INFO")
+            
+            # Clear all device states
+            self.device_paused.clear()
+            self.device_tasks.clear()
+            self.device_threads.clear()
+            self.farm_priority.clear()
+            self.current_farm_index.clear()
+            
+            # Reset current device
+            if self.current_device:
+                # Initialize fresh state for current device
+                self.device_paused[self.current_device] = True  # Default to paused
+                self.device_tasks[self.current_device] = self.state_manager.get_default_tasks()
+                self.farm_priority[self.current_device] = ["food", "wood", "stone", "gold"]
+                self.current_farm_index[self.current_device] = 0
+                
+                # Update button to reflect reset state
+                self.pause_button.config(text="▶️ Bắt đầu")
+                
+                self.log_message(f"Reset completed for device: {self.current_device}", "INFO")
+            else:
+                self.log_message("No device selected for reset", "WARNING")
+                
+        except Exception as e:
+            self.log_message(f"Reset failed: {e}", "ERROR")
+
+    def debug_device_states(self):
+        """Debug method to show current device states"""
+        try:
+            debug_info = f"Debug Info:\n"
+            debug_info += f"Current Device: {self.current_device}\n"
+            debug_info += f"Button Text: {self.pause_button.cget('text')}\n"
+            debug_info += f"Device Paused States: {self.device_paused}\n"
+            debug_info += f"Device Tasks: {self.device_tasks}\n"
+            debug_info += f"Device Threads: {list(self.device_threads.keys())}\n"
+            
+            self.log_message(debug_info, "INFO")
+            messagebox.showinfo("Debug Info", debug_info)
+        except Exception as e:
+            self.log_message(f"Debug failed: {e}", "ERROR")
+
     def toggle_pause(self):
-        """Toggle pause state with error handling"""
+        """Toggle pause state for current device"""
         try:
             device = self.current_device
             if not device:
-                self.log_message("No device selected for pause toggle", "WARNING")
+                messagebox.showwarning("Warning", "Vui lòng chọn device trước")
                 return
                 
-            paused = self.device_paused.get(device, False)
+            # Get current pause state for this specific device
+            paused = self.device_paused.get(device, True)  # Default to True (paused, show "Bắt đầu")
             self.device_paused[device] = not paused
             
+            # Don't save pause state to persistent storage - only keep in memory
+            
             if self.device_paused[device]:
+                # Pausing tasks for this device only
                 self.pause_button.config(text="▶️ Bắt đầu")
-                self.log_message(f"Paused tasks for device: {device}")
+                self.log_message(f"Tạm dừng tasks cho device: {device}")
+                
+                # Stop task thread for this device only
+                if device in self.device_threads:
+                    del self.device_threads[device]
+                    self.log_message(f"Đã dừng task thread cho device: {device}")
             else:
+                # Starting tasks for this device only
                 self.pause_button.config(text="⏸ Tạm dừng")
-                self.log_message(f"Resumed tasks for device: {device}")
-                self.on_task_changed()
+                self.log_message(f"Bắt đầu tasks cho device: {device}")
+                
+                # Start task thread for this device only if not already running and has active tasks
+                active_tasks = [task for task, var in self.tasks.items() if var.get()]
+                if active_tasks and device not in self.device_threads:
+                    t = threading.Thread(target=self.run_device_tasks, args=(device,), daemon=True)
+                    self.device_threads[device] = t
+                    t.start()
+                    self.log_message(f"Đã khởi động task thread cho device: {device}")
+                elif not active_tasks:
+                    self.log_message(f"Không có task nào được chọn cho device: {device}")
+                    # Keep the button as "Tạm dừng" but don't start thread
+                    # User can still pause if they want
                 
         except Exception as e:
             error_msg = f"Failed to toggle pause: {e}"
             self.log_message(error_msg, "ERROR")
             logger.error(traceback.format_exc())
+            messagebox.showerror("Error", error_msg)
+
+    def _save_current_device_state(self):
+        """Save current device state before switching"""
+        try:
+            if self.current_device:
+                # Save current device state before switching
+                current_tasks = {task: var.get() for task, var in self.tasks.items()}
+                self.device_tasks[self.current_device] = current_tasks
+                self.state_manager.save_device_tasks(self.current_device, current_tasks)
+                
+                # Don't save pause state - only keep in memory
+                    
+                self.log_message(f"Đã lưu trạng thái cho device: {self.current_device}")
+        except Exception as e:
+            logger.error(f"Failed to save current device state: {e}")
 
     def on_device_selected(self, event=None):
         """Handle device selection with error handling"""
         try:
-            if self.current_device:
-                self.device_tasks[self.current_device] = {task: var.get() for task, var in self.tasks.items()}
+            # Save current device state before switching
+            self._save_current_device_state()
 
             device = self.device_combo.get()
             self.current_device = device
             
             if device:
                 self.log_message(f"Device selected: {device}")
+                # Save as last used device
+                self.state_manager.set_last_device(device)
 
             if device in self.device_tasks:
+                # Load saved tasks for this device
                 for task, var in self.tasks.items():
                     var.set(self.device_tasks[device].get(task, False))
+                
+                # Load saved pause state for this device, default to True (paused) if not exists
+                if device not in self.device_paused:
+                    self.device_paused[device] = True
+                paused = self.device_paused[device]
+                
+                self.log_message(f"Loaded existing state for {device}: {'Paused' if paused else 'Running'}")
             else:
+                # Initialize with default state (all tasks disabled)
                 for var in self.tasks.values():
                     var.set(False)
+                # Initialize device state
+                self.device_tasks[device] = self.state_manager.get_default_tasks()
+                self.device_paused[device] = True  # Default to paused (show "Bắt đầu") for new devices
+                self.farm_priority[device] = ["food", "wood", "stone", "gold"]
+                self.current_farm_index[device] = 0
+                
+                # Save initial state for new device
+                self.state_manager.save_device_tasks(device, self.device_tasks[device])
+                # Don't save pause state - only keep in memory
+                self.state_manager.save_device_farm_state(device, self.farm_priority[device], 0)
                     
-            paused = self.device_paused.get(self.current_device, False)
-            if paused:
-                self.pause_button.config(text="▶️ Bắt đầu")
-            else:
-                self.pause_button.config(text="⏸ Tạm dừng")
+                paused = True
+                self.log_message(f"Initialized new device {device}: Paused")
+            
+            # Update button to reflect the actual device state
+            self._update_pause_button_state()
                 
         except Exception as e:
             error_msg = f"Failed to handle device selection: {e}"
             self.log_message(error_msg, "ERROR")
             logger.error(traceback.format_exc())
+            messagebox.showerror("Error", error_msg)
 
     def on_task_changed(self):
         """Handle task changes with error handling"""
         try:
             device = self.current_device
             if device:
-                self.device_tasks[device] = {task: var.get() for task, var in self.tasks.items()}
+                current_tasks = {task: var.get() for task, var in self.tasks.items()}
+                self.device_tasks[device] = current_tasks
+                
+                # Save task state to persistent storage
+                self.state_manager.save_device_tasks(device, current_tasks)
                 
                 # Log task changes
                 active_tasks = [task for task, var in self.tasks.items() if var.get()]
                 if active_tasks:
-                    self.log_message(f"Tasks activated for {device}: {', '.join(active_tasks)}")
+                    self.log_message(f"Tasks updated for {device}: {', '.join(active_tasks)}")
                 else:
                     self.log_message(f"No active tasks for {device}")
 
-                if device not in self.device_threads and not self.device_paused.get(device, False):
+                # Don't automatically start task thread - only start when pause button is pressed
+                # Task thread management is handled in toggle_pause method
+                if device not in self.device_threads and not self.device_paused.get(device, True):
                     self.log_message(f"Starting task thread for device: {device}")
                     t = threading.Thread(target=self.run_device_tasks, args=(device,), daemon=True)
                     self.device_threads[device] = t
                     t.start()
+                elif device in self.device_threads and self.device_paused.get(device, True):
+                    # Stop task thread if device is paused
+                    if device in self.device_threads:
+                        del self.device_threads[device]
+                        self.log_message(f"Stopped task thread for paused device: {device}")
                     
         except Exception as e:
             error_msg = f"Failed to handle task change: {e}"
@@ -345,6 +569,13 @@ class AdbApp(tk.Tk):
             self.farm_priority[device] = ["food", "wood", "stone", "gold"]
         if device not in self.current_farm_index:
             self.current_farm_index[device] = 0
+        
+        # Save farm state to persistent storage
+        self.state_manager.save_device_farm_state(
+            device, 
+            self.farm_priority[device], 
+            self.current_farm_index[device]
+        )
 
     def get_next_farm_type(self, device, tasks):
         """
@@ -381,7 +612,7 @@ class AdbApp(tk.Tk):
             
             while any(self.device_tasks.get(device, {}).values()):
                 try:   
-                    if self.device_paused.get(device, False):
+                    if self.device_paused.get(device, True):  # Default to True (paused)
                         time.sleep(0.5)
                         continue
 
@@ -412,9 +643,10 @@ class AdbApp(tk.Tk):
                         adb_process.tap(device, *confirm)
                         continue
                     # Always check
-                    pos = detect.find_object_directory(img, "./images/always_check")
-                    if pos:
-                        adb_process.tap(device, *pos)
+                    pos_always = detect.find_object_directory(img, "./images/always_check")
+                    if pos_always:
+                        adb_process.tap(device, *pos_always)
+                        detect.wait_until_found(device, "./images/home.png")
                         time.sleep(0.5)
                         continue
                     goback_pos = detect.find_object_position(img, "./images/goback.png")
@@ -429,7 +661,7 @@ class AdbApp(tk.Tk):
                     if tasks.get("recruitment"):
                         recruitment.houses = houses
                         recruitment.device_id = device
-                        recruitment.perform_action_requirement(img)
+                        recruitment.perform_action_recruitment(img)
 
                     # Training
                     if tasks.get("train"):
@@ -500,6 +732,76 @@ class AdbApp(tk.Tk):
             # Clean up thread reference
             if device in self.device_threads:
                 del self.device_threads[device]
+
+    def show_state_info(self):
+        """Show information about saved states"""
+        try:
+            summary = self.state_manager.get_state_summary()
+            
+            info_text = f"Thông tin trạng thái:\n\n"
+            info_text += f"Tổng số device: {summary['total_devices']}\n"
+            info_text += f"Cập nhật lần cuối: {summary['last_updated']}\n\n"
+            
+            if summary['devices']:
+                info_text += "Chi tiết device:\n"
+                for device_id, device_info in summary['devices'].items():
+                    status = "⏸ Tạm dừng" if device_info['is_paused'] else "▶️ Đang chạy"
+                    has_tasks = "✅ Có task" if device_info['has_tasks'] else "❌ Không có task"
+                    info_text += f"• {device_id}: {status} | {has_tasks}\n"
+            else:
+                info_text += "Chưa có device nào được lưu trạng thái.\n"
+            
+            messagebox.showinfo("Thông tin trạng thái", info_text)
+            
+        except Exception as e:
+            error_msg = f"Failed to show state info: {e}"
+            self.log_message(error_msg, "ERROR")
+            logger.error(traceback.format_exc())
+            messagebox.showerror("Error", error_msg)
+
+    def clear_current_device_state(self):
+        """Clear state for current device"""
+        try:
+            if not self.current_device:
+                messagebox.showwarning("Warning", "Vui lòng chọn device trước")
+                return
+            
+            result = messagebox.askyesno(
+                "Xác nhận", 
+                f"Bạn có chắc muốn xóa trạng thái của device '{self.current_device}'?\n"
+                "Hành động này không thể hoàn tác."
+            )
+            
+            if result:
+                # Clear from state manager
+                self.state_manager.clear_device_state(self.current_device)
+                
+                # Clear from local variables
+                if self.current_device in self.device_tasks:
+                    del self.device_tasks[self.current_device]
+                if self.current_device in self.device_paused:
+                    del self.device_paused[self.current_device]
+                if self.current_device in self.farm_priority:
+                    del self.farm_priority[self.current_device]
+                if self.current_device in self.current_farm_index:
+                    del self.current_farm_index[self.current_device]
+                
+                # Reset UI to defaults
+                for var in self.tasks.values():
+                    var.set(False)
+                
+                # Always set to not paused state (show "Bắt đầu") - only in memory
+                self.device_paused[self.current_device] = False
+                self.pause_button.config(text="⏸ Tạm dừng")
+                
+                self.log_message(f"Đã xóa trạng thái của device: {self.current_device}")
+                messagebox.showinfo("Thành công", f"Đã xóa trạng thái của device '{self.current_device}'")
+                
+        except Exception as e:
+            error_msg = f"Failed to clear device state: {e}"
+            self.log_message(error_msg, "ERROR")
+            logger.error(traceback.format_exc())
+            messagebox.showerror("Error", error_msg)
 
 # ---- Chạy ứng dụng GUI ----
 if __name__ == "__main__":

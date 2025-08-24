@@ -10,7 +10,7 @@ class Recruitment:
         self.device_id = device_id
         self.houses = houses or []
         
-    def perform_action_requirement(self, img):
+    def perform_action_recruitment(self, img):
         requirement_pos = self.detect.find_object_directory(img, "./images/recruitment/check")
         if not requirement_pos:
             return

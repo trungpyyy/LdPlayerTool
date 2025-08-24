@@ -36,6 +36,7 @@ class AdbProcess:
         try:
             command = [self.adb_path, "-s", device_id, "shell", "input", "tap", str(x), str(y)]
             subprocess.run(command, capture_output=True)
+            time.sleep(0.3)
         except:
             pass
 

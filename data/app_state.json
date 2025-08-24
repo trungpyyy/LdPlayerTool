@@ -1,0 +1,79 @@
+{
+  "last_updated": "2025-08-24T08:14:24.031820",
+  "devices": {
+    "emulator-5556": {
+      "tasks": {
+        "farm": true,
+        "explore": false,
+        "train": true,
+        "cave": false,
+        "food": true,
+        "wood": true,
+        "stone": true,
+        "gold": false,
+        "built": false,
+        "recruitment": true,
+        "army_count": 4
+      },
+      "last_used": "2025-08-23T12:22:08.558958",
+      "farm_priority": [
+        "food",
+        "wood",
+        "stone",
+        "gold"
+      ],
+      "current_farm_index": 1
+    },
+    "emulator-5554": {
+      "tasks": {
+        "farm": true,
+        "explore": false,
+        "train": true,
+        "cave": false,
+        "food": true,
+        "wood": true,
+        "stone": false,
+        "gold": false,
+        "built": false,
+        "recruitment": true,
+        "army_count": 3
+      },
+      "last_used": "2025-08-24T08:14:24.031820",
+      "farm_priority": [
+        "food",
+        "wood",
+        "stone",
+        "gold"
+      ],
+      "current_farm_index": 2
+    },
+    "emulator-5564": {
+      "tasks": {
+        "farm": true,
+        "explore": false,
+        "train": true,
+        "cave": false,
+        "food": true,
+        "wood": true,
+        "stone": true,
+        "gold": false,
+        "built": false,
+        "recruitment": false,
+        "army_count": 3
+      },
+      "last_used": "2025-08-24T06:52:07.889078",
+      "farm_priority": [
+        "food",
+        "wood",
+        "stone",
+        "gold"
+      ],
+      "current_farm_index": 2
+    }
+  },
+  "global_settings": {
+    "default_pause_state": true,
+    "last_device": "emulator-5554",
+    "window_position": null
+  }
+}

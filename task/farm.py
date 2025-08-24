@@ -17,12 +17,12 @@ class Farm:
         """
     def perform_action_using_up(self):
         image_paths = {
-            "bag": "./images/bag.png",
-            "up": "./images/farm/up.png",
-            "farm_8": "./images/farm/farm_8.png",
-            "farm_24": "./images/farm/farm_24.png",
-            "using": "./images/farm/using.png",
-            "close": "./images/always_check/close.png"
+            "bag": "images/bag.png",
+            "up": "images/farm/up.png",
+            "farm_8": "images/farm/farm_8.png",
+            "farm_24": "images/farm/farm_24.png",
+            "using": "images/farm/using.png",
+            "close": "images/always_check/close.png"
         }
         def tap_wait(image_key):
             coords = self.detect.wait_until_found(self.device_id, image_paths[image_key])
@@ -64,14 +64,14 @@ class Farm:
         """Perform search farm action by detecting and tapping on specific icons."""
         
         image_paths = {
-            "home": "./images/home.png",
-            "search": "./images/search.png",
-            "resource": f"./images/farm/{resource}.png",
-            "searching": "./images/searching.png",
-            "gather_btn": "./images/farm/GatherButton.png",
-            "matching": "./images/matching.png",
-            "resource_gather_btn": "./images/resource_gather_button.png",
-            "matched": "./images/matched.png",
+            "home": "images/home.png",
+            "search": "images/search.png",
+            "resource": f"images/farm/{resource}.png",
+            "searching": "images/searching.png",
+            "gather_btn": "images/farm/GatherButton.png",
+            "matching": "images/matching.png",
+            "resource_gather_btn": "images/resource_gather_button.png",
+            "matched": "images/matched.png",
             "goback": "images/goback.png"
         }
 
@@ -101,7 +101,7 @@ class Farm:
                     self.adb_process.tap(self.device_id, 640, 360)
                     time.sleep(delay)
                     tap_wait("goback")
-                    self.detect.wait_until_found(self.device_id, "./images/home.png")
+                    self.detect.wait_until_found(self.device_id, "images/home.png")
 
         def find_gather_btn():
             if self.detect.wait_until_found(self.device_id, image_paths["resource_gather_btn"]):
@@ -113,7 +113,7 @@ class Farm:
                         self.adb_process.tap(self.device_id, *coords)
                     if tap_wait("matched") is not None:
                         tap_wait("goback")
-                        self.detect.wait_until_found(self.device_id, "./images/home.png")
+                        self.detect.wait_until_found(self.device_id, "images/home.png")
 
         t1 = threading.Thread(target=find_matching)
         t2 = threading.Thread(target=find_gather_btn)

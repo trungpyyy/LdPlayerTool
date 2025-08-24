@@ -27,14 +27,150 @@ MAX_TASK_ITERATIONS = 1000
 TASK_RETRY_DELAY = 2.0
 
 # ==================== UI SETTINGS ====================
-WINDOW_WIDTH = 350
+WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 700
-WINDOW_TITLE = "Rise of Kingdoms Tool"
-WINDOW_BACKGROUND = "#f0f0f0"
+WINDOW_TITLE = "🎮 Rise of Kingdoms Tool"
+WINDOW_BACKGROUND = "#f0f2f5"
+
+# ==================== COLOR SCHEME ====================
+# Modern gradient theme with better contrast
+COLORS = {
+    "primary": "#ffffff",           # White
+    "secondary": "#f8f9fa",        # Light gray
+    "accent": "#6366f1",           # Modern indigo
+    "accent_light": "#818cf8",     # Lighter indigo
+    "accent_dark": "#4f46e5",      # Darker indigo
+    "success": "#10b981",          # Modern green
+    "success_light": "#34d399",    # Light green
+    "warning": "#f59e0b",          # Modern amber
+    "warning_light": "#fbbf24",    # Light amber
+    "error": "#ef4444",            # Modern red
+    "error_light": "#f87171",      # Light red
+    "text_primary": "#1f2937",     # Dark gray text
+    "text_secondary": "#6b7280",   # Medium gray text
+    "text_muted": "#9ca3af",       # Muted text
+    "border": "#e5e7eb",           # Light border
+    "border_light": "#f3f4f6",     # Lighter border
+    "button_bg": "#6366f1",        # Indigo button
+    "button_hover": "#4f46e5",     # Darker indigo hover
+    "button_secondary": "#f3f4f6", # Secondary button
+    "button_secondary_hover": "#e5e7eb", # Secondary button hover
+    "checkbox_bg": "#ffffff",      # White checkbox
+    "input_bg": "#ffffff",         # White input
+    "frame_bg": "#ffffff",         # White frame
+    "card_bg": "#ffffff",          # Card background
+    "card_shadow": "#00000010",    # Card shadow
+    "gradient_start": "#667eea",   # Gradient start
+    "gradient_end": "#764ba2",     # Gradient end
+}
+
+# ==================== FONT SETTINGS ====================
+FONTS = {
+    "title": ("Segoe UI", 16, "bold"),
+    "heading": ("Segoe UI", 11, "bold"),
+    "subheading": ("Segoe UI", 10, "bold"),
+    "body": ("Segoe UI", 9),
+    "button": ("Segoe UI", 9, "bold"),
+    "small": ("Segoe UI", 8),
+    "caption": ("Segoe UI", 7),
+}
+
+# UI spacing and sizing - more compact
+SPACING = {
+    "xs": 2,
+    "sm": 4,
+    "md": 8,
+    "lg": 12,
+    "xl": 16,
+}
+
+# Button styles for different types
+BUTTON_STYLES = {
+    "primary": {
+        "bg": COLORS["accent"],
+        "fg": COLORS["primary"],
+        "activebackground": COLORS["accent_dark"],
+        "activeforeground": COLORS["primary"],
+        "relief": "flat",
+        "bd": 0,
+        "padx": SPACING["md"],
+        "pady": SPACING["xs"],
+        "cursor": "hand2"
+    },
+    "secondary": {
+        "bg": COLORS["button_secondary"],
+        "fg": COLORS["text_primary"],
+        "activebackground": COLORS["button_secondary_hover"],
+        "activeforeground": COLORS["text_primary"],
+        "relief": "flat",
+        "bd": 0,
+        "padx": SPACING["md"],
+        "pady": SPACING["xs"],
+        "cursor": "hand2"
+    },
+    "danger": {
+        "bg": COLORS["error"],
+        "fg": COLORS["primary"],
+        "activebackground": COLORS["error_light"],
+        "activeforeground": COLORS["primary"],
+        "relief": "flat",
+        "bd": 0,
+        "padx": SPACING["sm"],
+        "pady": SPACING["xs"],
+        "cursor": "hand2"
+    },
+    "success": {
+        "bg": COLORS["success"],
+        "fg": COLORS["primary"],
+        "activebackground": COLORS["success_light"],
+        "activeforeground": COLORS["primary"],
+        "relief": "flat",
+        "bd": 0,
+        "padx": SPACING["sm"],
+        "pady": SPACING["xs"],
+        "cursor": "hand2"
+    }
+}
+
+# Input field styles
+INPUT_STYLES = {
+    "default": {
+        "relief": "flat",
+        "bd": 1,
+        "highlightthickness": 1,
+        "highlightbackground": COLORS["border"],
+        "highlightcolor": COLORS["accent"],
+        "bg": COLORS["input_bg"],
+        "fg": COLORS["text_primary"],
+        "insertbackground": COLORS["text_primary"]
+    }
+}
+
+# Checkbox styles
+CHECKBOX_STYLES = {
+    "default": {
+        "relief": "flat",
+        "bd": 0,
+        "bg": COLORS["card_bg"],
+        "selectcolor": COLORS["accent"],
+        "activebackground": COLORS["card_bg"],
+        "activeforeground": COLORS["text_primary"],
+        "cursor": "hand2"
+    }
+}
+
+CARD_STYLE = {
+    "relief": "flat",
+    "bd": 0,
+    "bg": COLORS["card_bg"],
+    "highlightthickness": 1,
+    "highlightbackground": COLORS["border"],
+    "highlightcolor": COLORS["accent"],
+}
 
 # Log display settings
-LOG_DISPLAY_HEIGHT = 8
-LOG_DISPLAY_WIDTH = 40
+LOG_DISPLAY_HEIGHT = 6
+LOG_DISPLAY_WIDTH = 35
 MAX_LOG_ENTRIES = 1000
 
 # ==================== LOGGING SETTINGS ====================
@@ -57,6 +193,12 @@ LOCALHOST_PATTERNS = []
 # Device connection settings
 DEVICE_CHECK_INTERVAL = 5.0  # seconds
 DEVICE_RECONNECT_ATTEMPTS = 3
+
+# ==================== STATE MANAGEMENT SETTINGS ====================
+# Default application state settings
+DEFAULT_PAUSE_STATE = True  # Devices start in paused state by default
+STATE_AUTO_SAVE = True  # Automatically save state changes
+STATE_FILE_PATH = "data/app_state.json"  # Path to state file
 
 # ==================== GAME-SPECIFIC SETTINGS ====================
 # Rise of Kingdoms specific coordinates and settings
